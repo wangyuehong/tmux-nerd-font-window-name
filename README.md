@@ -34,10 +34,42 @@ config:
   multi-pane-icon: "" # show when window has multiple panes (blank by default)
   show-name: true # show the window name with the icon (defaults to false)
   icon-position: "left" # show the icon to the "left" or "right" of the window name (defaults to left)
+  prefer-program-name: false # show actual program name instead of interpreter name (see below)
+  script-interpreters: # interpreters to check when prefer-program-name is true
+    - node
+    - python
+    - python3
+    - ruby
+    - perl
 
 icons:
   zsh: "" # overwrite with your own symbol (Nerd Font icon, emoji, whatever!)
   cmatrix: "🤯" # add new entries that aren't included
+```
+
+### Script Interpreter Resolution
+
+When running scripts via interpreters like `node` or `python`, tmux displays
+the interpreter name (e.g., `node`) instead of the actual program name
+(e.g., `claude`). Enable `prefer-program-name` to show the actual program name:
+
+```yml
+config:
+  prefer-program-name: true
+
+icons:
+  claude: "󰭻"
+```
+
+You can customize which interpreters are checked:
+
+```yml
+config:
+  prefer-program-name: true
+  script-interpreters:
+    - node
+    - deno
+    - bun
 ```
 
 ### Custom Placeholder Support

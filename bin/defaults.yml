@@ -2,6 +2,16 @@
 config:
   fallback-icon: "?"
   show-name: true
+  # When pane runs a script interpreter (e.g., node), show actual program name
+  # instead of interpreter name. E.g., show "claude" instead of "node".
+  prefer-program-name: false
+  # Script interpreters to check when prefer-program-name is true
+  script-interpreters:
+    - node
+    - python
+    - python3
+    - ruby
+    - perl
 
 icons:
   alacritty: ""

@@ -9,6 +9,7 @@ fi
 # Define variables with arguments and config paths
 NAME="$1"
 PANES="$2"
+PID="$3"
 CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEFAULT_CONFIG="$CURRENT_DIR/defaults.yml"
 USER_CONFIG="$HOME/.config/tmux/tmux-nerd-font-window-name.yml"
@@ -29,8 +30,38 @@ get_config_value() {
   echo "$value"
 }
 
+# Resolve actual program name for script interpreters (e.g., node -> claude)
+INTERPRETER_NAME=""
+PREFER_PROGRAM_NAME=$(get_config_value '.config["prefer-program-name"]')
+if [ "$PREFER_PROGRAM_NAME" = "true" ]; then
+  SCRIPT_INTERPRETERS=$(get_config_value '.config["script-interpreters"]')
+  # Check if NAME is a script interpreter
+  if [ "$SCRIPT_INTERPRETERS" != "null" ] && \
+     echo "$SCRIPT_INTERPRETERS" | yq -r '.[]' 2>/dev/null | grep -qx "$NAME"; then
+    if [ -n "$PID" ]; then
+      # Find shell's child process
+      CHILD_PID=$(ps -eo pid,ppid 2>/dev/null | awk -v ppid="$PID" '$2 == ppid {print $1; exit}')
+      if [ -n "$CHILD_PID" ]; then
+        # Get child process comm (actual program name, e.g., "claude")
+        PROGRAM_NAME=$(ps -o comm= -p "$CHILD_PID" 2>/dev/null)
+        if [ -n "$PROGRAM_NAME" ] && [ "$PROGRAM_NAME" != "$NAME" ]; then
+          INTERPRETER_NAME="$NAME"
+          NAME="$PROGRAM_NAME"
+        fi
+      fi
+    fi
+  fi
+fi
+
 # Retrieve the icon based on the NAME argument
 ICON="$(get_config_value ".icons[\"$NAME\"]")"
+
+# Fallback to interpreter icon if program icon not found
+if [ "$ICON" == "null" ] || [ -z "$ICON" ]; then
+  if [ -n "$INTERPRETER_NAME" ]; then
+    ICON="$(get_config_value ".icons[\"$INTERPRETER_NAME\"]")"
+  fi
+fi
 
 # Fallback icon if no specific icon is found
 if [ "$ICON" == "null" ] || [ -z "$ICON" ]; then
